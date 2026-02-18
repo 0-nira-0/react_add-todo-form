@@ -10,6 +10,7 @@ export interface ToDo {
   title: string;
   completed: boolean;
   userId: number;
+  user: User | undefined;
 }
 
 export interface User {
@@ -19,16 +20,17 @@ export interface User {
   email: string;
 }
 
-function findBiggestNumber(todos: ToDo[]) {
-  const sortedToDos = todos.sort((todo1, todo2) => todo2.id - todo1.id);
-
-  return sortedToDos[0].id;
-}
-
 export const App = () => {
+  const usersToDos = todosFromServer.map(todo => {
+    return {
+      ...todo,
+      user: usersFromServer.find(user => user.id === todo.userId),
+    };
+  });
+
   const [title, setTitle] = useState('');
   const [userId, setUserId] = useState(0);
-  const [visibleToDos, setVisibleToDos] = useState([...todosFromServer]);
+  const [visibleToDos, setVisibleToDos] = useState([...usersToDos]);
 
   const [titleError, setTitleError] = useState(false);
   const [userIdError, setUserIdError] = useState(false);
@@ -47,10 +49,11 @@ export const App = () => {
         return [
           ...previousToDos,
           {
-            id: findBiggestNumber(previousToDos) + 1,
+            id: previousToDos.reduce((max, t) => Math.max(max, t.id), 0) + 1,
             title: title,
             completed: false,
             userId: userId,
+            user: usersFromServer.find(user => user.id === userId),
           },
         ];
       });
