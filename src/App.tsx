@@ -10,7 +10,7 @@ export interface ToDo {
   title: string;
   completed: boolean;
   userId: number;
-  user: User | undefined;
+  user: User;
 }
 
 export interface User {
@@ -21,12 +21,14 @@ export interface User {
 }
 
 export const App = () => {
-  const usersToDos = todosFromServer.map(todo => {
-    return {
-      ...todo,
-      user: usersFromServer.find(user => user.id === todo.userId),
-    };
-  });
+  const usersToDos = todosFromServer
+    .map(todo => {
+      return {
+        ...todo,
+        user: usersFromServer.find(user => user.id === todo.userId),
+      };
+    })
+    .filter((todo): todo is ToDo => todo.user !== undefined);
 
   const [title, setTitle] = useState('');
   const [userId, setUserId] = useState(0);
@@ -34,6 +36,8 @@ export const App = () => {
 
   const [titleError, setTitleError] = useState(false);
   const [userIdError, setUserIdError] = useState(false);
+
+  const userOfToDo = usersFromServer.find(user => user.id === userId);
 
   function handleSubmision() {
     if (title === '') {
@@ -44,7 +48,7 @@ export const App = () => {
       setUserIdError(() => true);
     }
 
-    if (title !== '' && userId !== 0) {
+    if (title !== '' && userId !== 0 && userOfToDo) {
       setVisibleToDos(previousToDos => {
         return [
           ...previousToDos,
@@ -53,7 +57,7 @@ export const App = () => {
             title: title,
             completed: false,
             userId: userId,
-            user: usersFromServer.find(user => user.id === userId),
+            user: userOfToDo,
           },
         ];
       });
